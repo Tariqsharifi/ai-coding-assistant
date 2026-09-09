@@ -227,6 +227,9 @@
   function comingSoon() {
     alert('این بخش در مرحله بعد ساخته می‌شود 🙂');
   }
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
 
   checkSession();
 </script>
