@@ -18,120 +18,71 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
-  .screen { display: none; flex: 1; flex-direction: column; }
+  .screen { display: none; flex: 1; flex-direction: column; height: 100vh; }
   .screen.active { display: flex; }
 
-  /* --- صفحه لاگین --- */
-  #loginScreen {
-    justify-content: center;
-    align-items: center;
-    padding: 24px;
-  }
-  .login-box {
-    width: 100%;
-    max-width: 360px;
-    background: #1e293b;
-    border-radius: 16px;
-    padding: 28px 20px;
-  }
-  .login-box h1 {
-    font-size: 20px;
-    text-align: center;
-    margin-bottom: 24px;
-    color: #38bdf8;
-  }
+  /* --- لاگین --- */
+  #loginScreen { justify-content: center; align-items: center; padding: 24px; }
+  .login-box { width: 100%; max-width: 360px; background: #1e293b; border-radius: 16px; padding: 28px 20px; }
+  .login-box h1 { font-size: 20px; text-align: center; margin-bottom: 24px; color: #38bdf8; }
   .login-box input {
-    width: 100%;
-    padding: 14px;
-    margin-bottom: 12px;
-    border-radius: 10px;
-    border: 1px solid #334155;
-    background: #0f172a;
-    color: #f1f5f9;
-    font-size: 16px;
+    width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 10px;
+    border: 1px solid #334155; background: #0f172a; color: #f1f5f9; font-size: 16px;
   }
   .login-box button {
-    width: 100%;
-    padding: 14px;
-    border-radius: 10px;
-    border: none;
-    background: #38bdf8;
-    color: #0f172a;
-    font-weight: bold;
-    font-size: 16px;
-    margin-top: 8px;
+    width: 100%; padding: 14px; border-radius: 10px; border: none;
+    background: #38bdf8; color: #0f172a; font-weight: bold; font-size: 16px; margin-top: 8px;
   }
   .login-box button:disabled { opacity: 0.6; }
-  #loginError {
-    color: #f87171;
-    font-size: 13px;
-    text-align: center;
-    margin-top: 10px;
-    min-height: 18px;
-  }
+  #loginError { color: #f87171; font-size: 13px; text-align: center; margin-top: 10px; min-height: 18px; }
 
   /* --- صفحه اصلی --- */
-  #homeScreen {
-    padding: 20px 16px 90px;
+  #homeScreen { padding: 20px 16px; overflow-y: auto; }
+  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .top-bar h2 { font-size: 18px; color: #38bdf8; }
+  .icon-btn {
+    background: none; border: 1px solid #334155; color: #94a3b8;
+    padding: 6px 14px; border-radius: 20px; font-size: 13px;
   }
-  .home-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-  }
-  .home-header h2 { font-size: 18px; color: #38bdf8; }
-  .logout-btn {
-    background: none;
-    border: 1px solid #334155;
-    color: #94a3b8;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 13px;
-  }
-  .menu-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
+  .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .menu-btn {
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 14px;
-    padding: 20px 10px;
-    text-align: center;
-    color: #f1f5f9;
-    font-size: 15px;
+    background: #1e293b; border: 1px solid #334155; border-radius: 14px;
+    padding: 20px 10px; text-align: center; color: #f1f5f9; font-size: 15px;
   }
   .menu-btn span { display: block; font-size: 26px; margin-bottom: 8px; }
 
+  /* --- صفحه چت --- */
+  #chatScreen { height: 100vh; }
+  .chat-header {
+    display: flex; align-items: center; gap: 10px; padding: 14px 16px;
+    background: #1e293b; border-bottom: 1px solid #334155;
+  }
+  .back-btn { background: none; border: none; color: #38bdf8; font-size: 18px; }
+  .chat-header h3 { font-size: 16px; }
+  #messages {
+    flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .msg { max-width: 85%; padding: 12px 14px; border-radius: 14px; font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
+  .msg.user { align-self: flex-end; background: #38bdf8; color: #0f172a; }
+  .msg.ai { align-self: flex-start; background: #1e293b; border: 1px solid #334155; }
+  .msg.system { align-self: center; background: none; color: #64748b; font-size: 12px; }
+  .msg-provider { font-size: 11px; color: #64748b; margin-top: 6px; }
+
   .chat-input-bar {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: #1e293b;
-    border-top: 1px solid #334155;
-    padding: 10px 12px;
-    display: flex;
-    gap: 8px;
+    display: flex; gap: 8px; padding: 10px 12px;
+    background: #1e293b; border-top: 1px solid #334155;
   }
   .chat-input-bar input {
-    flex: 1;
-    padding: 12px 14px;
-    border-radius: 20px;
-    border: 1px solid #334155;
-    background: #0f172a;
-    color: #f1f5f9;
-    font-size: 15px;
+    flex: 1; padding: 12px 14px; border-radius: 20px; border: 1px solid #334155;
+    background: #0f172a; color: #f1f5f9; font-size: 15px;
   }
   .chat-input-bar button {
-    background: #38bdf8;
-    border: none;
-    border-radius: 20px;
-    padding: 0 18px;
-    color: #0f172a;
-    font-weight: bold;
+    background: #38bdf8; border: none; border-radius: 20px; padding: 0 18px;
+    color: #0f172a; font-weight: bold;
   }
+  .chat-input-bar button:disabled { opacity: 0.5; }
 </style>
 </head>
 <body>
@@ -149,14 +100,14 @@
 
 <!-- صفحه اصلی -->
 <div id="homeScreen" class="screen">
-  <div class="home-header">
+  <div class="top-bar">
     <h2>دستیار مهندسی نرم‌افزار</h2>
-    <button class="logout-btn" onclick="handleLogout()">خروج</button>
+    <button class="icon-btn" onclick="handleLogout()">خروج</button>
   </div>
   <div class="menu-grid">
     <button class="menu-btn" onclick="comingSoon()"><span>➕</span>پروژه جدید</button>
     <button class="menu-btn" onclick="comingSoon()"><span>📁</span>پروژه‌ها</button>
-    <button class="menu-btn" onclick="comingSoon()"><span>💬</span>گفتگو با AI</button>
+    <button class="menu-btn" onclick="showScreen('chatScreen')"><span>💬</span>گفتگو با AI</button>
     <button class="menu-btn" onclick="comingSoon()"><span>💻</span>کدنویسی</button>
     <button class="menu-btn" onclick="comingSoon()"><span>🐞</span>رفع باگ</button>
     <button class="menu-btn" onclick="comingSoon()"><span>🏗️</span>ساخت اپ</button>
@@ -166,9 +117,19 @@
   </div>
 </div>
 
-<div class="chat-input-bar" id="chatBar" style="display:none;">
-  <input type="text" placeholder="پیام خود را بنویس...">
-  <button onclick="comingSoon()">ارسال</button>
+<!-- صفحه چت -->
+<div id="chatScreen" class="screen">
+  <div class="chat-header">
+    <button class="back-btn" onclick="showScreen('homeScreen')">→ بازگشت</button>
+    <h3>گفتگو با AI</h3>
+  </div>
+  <div id="messages">
+    <div class="msg system">سلام! هر سؤال کدنویسی یا ایده‌ای داری بپرس.</div>
+  </div>
+  <div class="chat-input-bar">
+    <input type="text" id="chatInput" placeholder="پیام خود را بنویس..." onkeydown="if(event.key==='Enter') sendMessage()">
+    <button id="sendBtn" onclick="sendMessage()">ارسال</button>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -176,20 +137,16 @@
   const SUPABASE_URL = "https://jucvdutfxazetlmlezka.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_TpUs6076LA1x75TaFGTnZg_rxj0TdI5";
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const AI_CHAT_URL = `${SUPABASE_URL}/functions/v1/ai-chat`;
 
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
-    document.getElementById('chatBar').style.display = (id === 'homeScreen') ? 'flex' : 'none';
   }
 
   async function checkSession() {
     const { data } = await supabaseClient.auth.getSession();
-    if (data.session) {
-      showScreen('homeScreen');
-    } else {
-      showScreen('loginScreen');
-    }
+    showScreen(data.session ? 'homeScreen' : 'loginScreen');
   }
 
   async function handleLogin() {
@@ -198,24 +155,11 @@
     const errorBox = document.getElementById('loginError');
     const btn = document.getElementById('loginBtn');
     errorBox.textContent = '';
-
-    if (!email || !password) {
-      errorBox.textContent = 'لطفاً ایمیل و رمز عبور را وارد کنید';
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'در حال ورود...';
-
+    if (!email || !password) { errorBox.textContent = 'لطفاً ایمیل و رمز عبور را وارد کنید'; return; }
+    btn.disabled = true; btn.textContent = 'در حال ورود...';
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
-    btn.disabled = false;
-    btn.textContent = 'ورود';
-
-    if (error) {
-      errorBox.textContent = 'ایمیل یا رمز عبور اشتباه است';
-      return;
-    }
+    btn.disabled = false; btn.textContent = 'ورود';
+    if (error) { errorBox.textContent = 'ایمیل یا رمز عبور اشتباه است'; return; }
     showScreen('homeScreen');
   }
 
@@ -224,12 +168,67 @@
     showScreen('loginScreen');
   }
 
-  function comingSoon() {
-    alert('این بخش در مرحله بعد ساخته می‌شود 🙂');
+  function comingSoon() { alert('این بخش در مرحله بعد ساخته می‌شود 🙂'); }
+
+  function addMessage(text, cls, provider) {
+    const box = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = 'msg ' + cls;
+    div.textContent = text;
+    if (provider) {
+      const p = document.createElement('div');
+      p.className = 'msg-provider';
+      p.textContent = 'منبع: ' + provider;
+      div.appendChild(p);
+    }
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+    return div;
   }
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js');
-}
+
+  async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const text = input.value.trim();
+    if (!text) return;
+
+    addMessage(text, 'user');
+    input.value = '';
+    sendBtn.disabled = true;
+    const loadingMsg = addMessage('در حال فکر کردن...', 'ai');
+
+    try {
+      const { data: sessionData } = await supabaseClient.auth.getSession();
+      const token = sessionData.session?.access_token;
+
+      const res = await fetch(AI_CHAT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ message: text }),
+      });
+
+      const data = await res.json();
+      loadingMsg.remove();
+
+      if (data.error) {
+        addMessage('خطا: ' + data.error, 'system');
+      } else {
+        addMessage(data.reply, 'ai', data.provider);
+      }
+    } catch (err) {
+      loadingMsg.remove();
+      addMessage('خطا در اتصال به سرور. دوباره امتحان کن.', 'system');
+    } finally {
+      sendBtn.disabled = false;
+    }
+  }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js');
+  }
 
   checkSession();
 </script>
