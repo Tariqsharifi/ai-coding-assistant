@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>دستیار مهندسی نرم‌افزار</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Vazirmatn", Tahoma, sans-serif;
+    background: #0f172a;
+    color: #f1f5f9;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .screen { display: none; flex: 1; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* --- صفحه لاگین --- */
+  #loginScreen {
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+  }
+  .login-box {
+    width: 100%;
+    max-width: 360px;
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 28px 20px;
+  }
+  .login-box h1 {
+    font-size: 20px;
+    text-align: center;
+    margin-bottom: 24px;
+    color: #38bdf8;
+  }
+  .login-box input {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #f1f5f9;
+    font-size: 16px;
+  }
+  .login-box button {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    background: #38bdf8;
+    color: #0f172a;
+    font-weight: bold;
+    font-size: 16px;
+    margin-top: 8px;
+  }
+  .login-box button:disabled { opacity: 0.6; }
+  #loginError {
+    color: #f87171;
+    font-size: 13px;
+    text-align: center;
+    margin-top: 10px;
+    min-height: 18px;
+  }
+
+  /* --- صفحه اصلی --- */
+  #homeScreen {
+    padding: 20px 16px 90px;
+  }
+  .home-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .home-header h2 { font-size: 18px; color: #38bdf8; }
+  .logout-btn {
+    background: none;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+  }
+  .menu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .menu-btn {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 14px;
+    padding: 20px 10px;
+    text-align: center;
+    color: #f1f5f9;
+    font-size: 15px;
+  }
+  .menu-btn span { display: block; font-size: 26px; margin-bottom: 8px; }
+
+  .chat-input-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #1e293b;
+    border-top: 1px solid #334155;
+    padding: 10px 12px;
+    display: flex;
+    gap: 8px;
+  }
+  .chat-input-bar input {
+    flex: 1;
+    padding: 12px 14px;
+    border-radius: 20px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #f1f5f9;
+    font-size: 15px;
+  }
+  .chat-input-bar button {
+    background: #38bdf8;
+    border: none;
+    border-radius: 20px;
+    padding: 0 18px;
+    color: #0f172a;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<!-- صفحه لاگین -->
+<div id="loginScreen" class="screen active">
+  <div class="login-box">
+    <h1>ورود به دستیار شخصی</h1>
+    <input type="email" id="emailInput" placeholder="ایمیل" autocomplete="username">
+    <input type="password" id="passwordInput" placeholder="رمز عبور" autocomplete="current-password">
+    <button id="loginBtn" onclick="handleLogin()">ورود</button>
+    <div id="loginError"></div>
+  </div>
+</div>
+
+<!-- صفحه اصلی -->
+<div id="homeScreen" class="screen">
+  <div class="home-header">
+    <h2>دستیار مهندسی نرم‌افزار</h2>
+    <button class="logout-btn" onclick="handleLogout()">خروج</button>
+  </div>
+  <div class="menu-grid">
+    <button class="menu-btn" onclick="comingSoon()"><span>➕</span>پروژه جدید</button>
+    <button class="menu-btn" onclick="comingSoon()"><span>📁</span>پروژه‌ها</button>
+    <button class="menu-btn" onclick="comingSoon()"><span>💬</span>گفتگو با AI</button>
+    <button class="menu-btn" onclick="comingSoon()"><span>💻</span>کدنویسی</button>
+    <button class="menu-btn" onclick="comingSoon()"><span>🐞</span>رفع باگ</button>
+    <button class="menu-btn" onclick="comingSoon()"><span>🏗️</span>ساخت اپ</button>
+    <button class="menu-btn" onclick="comingSoon()"><span>📄</span>فایل‌ها</button>
+    <button class="menu-btn" onclick="comingSoon()"><span>🧠</span>حافظه</button>
+    <button class="menu-btn" onclick="comingSoon()"><span>⚙️</span>تنظیمات</button>
+  </div>
+</div>
+
+<div class="chat-input-bar" id="chatBar" style="display:none;">
+  <input type="text" placeholder="پیام خود را بنویس...">
+  <button onclick="comingSoon()">ارسال</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+  const SUPABASE_URL = "https://jucvdutfxazetlmlezka.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_TpUs6076LA1x75TaFGTnZg_rxj0TdI5";
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.getElementById('chatBar').style.display = (id === 'homeScreen') ? 'flex' : 'none';
+  }
+
+  async function checkSession() {
+    const { data } = await supabaseClient.auth.getSession();
+    if (data.session) {
+      showScreen('homeScreen');
+    } else {
+      showScreen('loginScreen');
+    }
+  }
+
+  async function handleLogin() {
+    const email = document.getElementById('emailInput').value.trim();
+    const password = document.getElementById('passwordInput').value;
+    const errorBox = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
+    errorBox.textContent = '';
+
+    if (!email || !password) {
+      errorBox.textContent = 'لطفاً ایمیل و رمز عبور را وارد کنید';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'در حال ورود...';
+
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+    btn.disabled = false;
+    btn.textContent = 'ورود';
+
+    if (error) {
+      errorBox.textContent = 'ایمیل یا رمز عبور اشتباه است';
+      return;
+    }
+    showScreen('homeScreen');
+  }
+
+  async function handleLogout() {
+    await supabaseClient.auth.signOut();
+    showScreen('loginScreen');
+  }
+
+  function comingSoon() {
+    alert('این بخش در مرحله بعد ساخته می‌شود 🙂');
+  }
+
+  checkSession();
+</script>
+</body>
+</html>
