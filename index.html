@@ -63,14 +63,27 @@
   .msg.ai { align-self: flex-start; background: #1e293b; border: 1px solid #334155; }
   .msg.system { align-self: center; background: none; color: #64748b; font-size: 12px; }
   .msg-provider { font-size: 11px; color: #64748b; margin-top: 6px; }
+  .msg img { max-width: 100%; border-radius: 10px; margin-bottom: 8px; display: block; }
 
-  .chat-input-bar { display: flex; gap: 8px; padding: 10px 12px; background: #1e293b; border-top: 1px solid #334155; }
-  .chat-input-bar input {
+  .attach-preview {
+    display: none; align-items: center; gap: 10px; padding: 8px 12px;
+    background: #1e293b; border-top: 1px solid #334155;
+  }
+  .attach-preview img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; }
+  .attach-preview span { font-size: 12px; color: #94a3b8; flex: 1; }
+  .attach-preview button { background: none; border: none; color: #f87171; font-size: 13px; }
+
+  .chat-input-bar { display: flex; gap: 8px; padding: 10px 12px; background: #1e293b; border-top: 1px solid #334155; align-items: center; }
+  .attach-btn {
+    background: none; border: 1px solid #334155; color: #94a3b8; border-radius: 50%;
+    width: 38px; height: 38px; flex-shrink: 0; font-size: 18px; display:flex; align-items:center; justify-content:center;
+  }
+  .chat-input-bar input[type=text] {
     flex: 1; padding: 12px 14px; border-radius: 20px; border: 1px solid #334155;
     background: #0f172a; color: #f1f5f9; font-size: 15px;
   }
-  .chat-input-bar button {
-    background: #38bdf8; border: none; border-radius: 20px; padding: 0 18px; color: #0f172a; font-weight: bold;
+  .chat-input-bar button.send-btn {
+    background: #38bdf8; border: none; border-radius: 20px; padding: 0 18px; color: #0f172a; font-weight: bold; height: 38px; flex-shrink:0;
   }
   .chat-input-bar button:disabled { opacity: 0.5; }
 
@@ -190,9 +203,16 @@
     <button class="small-btn" onclick="clearHistory()">پاک کردن</button>
   </div>
   <div id="messages"><div class="msg system">در حال بارگذاری تاریخچه...</div></div>
+  <div class="attach-preview" id="attachPreview">
+    <img id="attachPreviewImg">
+    <span>عکس ضمیمه شد</span>
+    <button onclick="removeAttachedImage()">حذف</button>
+  </div>
   <div class="chat-input-bar">
+    <button class="attach-btn" onclick="document.getElementById('chatImageInput').click()">📎</button>
+    <input type="file" id="chatImageInput" accept="image/*" style="display:none" onchange="handleChatImageSelect(event)">
     <input type="text" id="chatInput" placeholder="پیام خود را بنویس..." onkeydown="if(event.key==='Enter') sendMessage()">
-    <button id="sendBtn" onclick="sendMessage()">ارسال</button>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">ارسال</button>
   </div>
 </div>
 
@@ -210,7 +230,7 @@
   </div>
   <div class="chat-input-bar" id="fileAskBar" style="display:none;">
     <input type="text" id="fileAskInput" placeholder="درباره این فایل بپرس..." onkeydown="if(event.key==='Enter') askAboutFile()">
-    <button id="fileAskBtn" onclick="askAboutFile()">ارسال</button>
+    <button class="send-btn" id="fileAskBtn" onclick="askAboutFile()">ارسال</button>
   </div>
 </div>
 
@@ -305,6 +325,7 @@
   const MAX_FILE_CHARS = 12000;
 
   let historyLoaded = false;
+  let pendingChatImage = null;
 
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -344,11 +365,18 @@
     return data.session?.access_token;
   }
 
-  function addMessage(text, cls, provider) {
+  function addMessage(text, cls, provider, imageDataUrl) {
     const box = document.getElementById('messages');
     const div = document.createElement('div');
     div.className = 'msg ' + cls;
-    div.textContent = text;
+    if (imageDataUrl) {
+      const img = document.createElement('img');
+      img.src = imageDataUrl;
+      div.appendChild(img);
+    }
+    const textNode = document.createElement('div');
+    textNode.textContent = text;
+    div.appendChild(textNode);
     if (provider) {
       const p = document.createElement('div');
       p.className = 'msg-provider';
@@ -394,16 +422,44 @@
     return res.json();
   }
 
+  function handleChatImageSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      pendingChatImage = { base64: dataUrl.split(',')[1], dataUrl };
+      document.getElementById('attachPreviewImg').src = dataUrl;
+      document.getElementById('attachPreview').style.display = 'flex';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeAttachedImage() {
+    pendingChatImage = null;
+    document.getElementById('chatImageInput').value = '';
+    document.getElementById('attachPreview').style.display = 'none';
+  }
+
   async function sendMessage() {
     const input = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendBtn');
     const text = input.value.trim();
-    if (!text) return;
-    addMessage(text, 'user'); saveMessage('user', text);
-    input.value = ''; sendBtn.disabled = true;
+    const image = pendingChatImage;
+    if (!text && !image) return;
+
+    const displayText = text || '(عکس ارسال شد)';
+    addMessage(displayText, 'user', null, image ? image.dataUrl : null);
+    saveMessage('user', displayText + (image ? ' [عکس ضمیمه]' : ''));
+
+    input.value = '';
+    removeAttachedImage();
+    sendBtn.disabled = true;
     const loadingMsg = addMessage('در حال فکر کردن...', 'ai');
+
     try {
-      const data = await callAiChat(text);
+      const mode = image ? 'vision' : undefined;
+      const data = await callAiChat(displayText, mode, image ? image.base64 : undefined);
       loadingMsg.remove();
       if (data.error) { addMessage('خطا: ' + data.error, 'system'); }
       else { addMessage(data.reply, 'ai', data.provider); saveMessage('ai', data.reply); }
