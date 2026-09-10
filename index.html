@@ -113,8 +113,7 @@
     padding: 14px; font-size: 14px; line-height: 1.8; white-space: pre-wrap; display: none;
   }
 
-  /* --- پروژه‌ها --- */
-  #projectsScreen, #newProjectScreen, #projectDetailScreen { height: 100vh; }
+  #projectsScreen, #newProjectScreen, #projectDetailScreen, #buildAppScreen { height: 100vh; }
   #projectsList { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
   .project-item {
     background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 14px;
@@ -141,6 +140,26 @@
     background: #1e293b; color: #f1f5f9; font-size: 14px;
   }
   .detail-actions button.danger { color: #f87171; border-color: #f87171; }
+
+  /* --- ساخت اپ --- */
+  #buildAppForm { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  #buildAppForm label { font-size: 13px; color: #94a3b8; }
+  #buildAppForm textarea {
+    width: 100%; min-height: 90px; padding: 12px; border-radius: 10px;
+    border: 1px solid #334155; background: #1e293b; color: #f1f5f9; font-size: 14px;
+    font-family: inherit; resize: vertical;
+  }
+  #buildAppSubmitBtn { background: #38bdf8; border: none; border-radius: 10px; padding: 14px; color: #0f172a; font-weight: bold; font-size: 15px; }
+  #buildAppSubmitBtn:disabled { opacity: 0.5; }
+  #buildAppResult {
+    background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+    padding: 14px; font-size: 14px; line-height: 1.8; white-space: pre-wrap; display: none;
+  }
+  #buildAppActions { display: none; gap: 10px; }
+  #buildAppActions button {
+    flex: 1; padding: 12px; border-radius: 10px; border: none;
+    background: #38bdf8; color: #0f172a; font-weight: bold; font-size: 14px;
+  }
 </style>
 </head>
 <body>
@@ -166,7 +185,7 @@
     <button class="menu-btn" onclick="showScreen('chatScreen')"><span>💬</span>گفتگو با AI</button>
     <button class="menu-btn" onclick="openCoding()"><span>💻</span>کدنویسی</button>
     <button class="menu-btn" onclick="openBugDoctor()"><span>🐞</span>رفع باگ</button>
-    <button class="menu-btn" onclick="comingSoon()"><span>🏗️</span>ساخت اپ</button>
+    <button class="menu-btn" onclick="openBuildApp()"><span>🏗️</span>ساخت اپ</button>
     <button class="menu-btn" onclick="comingSoon()"><span>📄</span>فایل‌ها</button>
     <button class="menu-btn" onclick="comingSoon()"><span>⚙️</span>تنظیمات</button>
   </div>
@@ -224,7 +243,6 @@
   </div>
 </div>
 
-<!-- لیست پروژه‌ها -->
 <div id="projectsScreen" class="screen">
   <div class="inner-header">
     <div class="inner-header-left">
@@ -236,7 +254,6 @@
   <div id="projectsList"></div>
 </div>
 
-<!-- فرم پروژه جدید / ویرایش -->
 <div id="newProjectScreen" class="screen">
   <div class="inner-header">
     <div class="inner-header-left">
@@ -253,7 +270,6 @@
   </div>
 </div>
 
-<!-- جزئیات پروژه -->
 <div id="projectDetailScreen" class="screen">
   <div class="inner-header">
     <div class="inner-header-left">
@@ -269,6 +285,27 @@
     <div class="detail-actions">
       <button onclick="editProject()">ویرایش</button>
       <button class="danger" onclick="deleteProject()">حذف</button>
+    </div>
+  </div>
+</div>
+
+<!-- ساخت اپ -->
+<div id="buildAppScreen" class="screen">
+  <div class="inner-header">
+    <div class="inner-header-left">
+      <button class="back-btn" onclick="showScreen('homeScreen')">→ بازگشت</button>
+      <h3>ساخت اپ</h3>
+    </div>
+  </div>
+  <div id="buildAppForm">
+    <div>
+      <label>ایده‌ات رو توی یک یا چند جمله بنویس</label>
+      <textarea id="buildAppIdea" placeholder="مثلاً: می‌خوام یک اپ بسازم که عکس فاکتور رو بگیره و کالاها رو استخراج کنه"></textarea>
+    </div>
+    <button id="buildAppSubmitBtn" onclick="analyzeBuildApp()">تبدیل به طرح کامل</button>
+    <div id="buildAppResult"></div>
+    <div id="buildAppActions">
+      <button onclick="saveBuildAppAsProject()">ذخیره به‌عنوان پروژه جدید</button>
     </div>
   </div>
 </div>
@@ -389,7 +426,6 @@
     finally { sendBtn.disabled = false; }
   }
 
-  // --- کدنویسی ---
   let codingState = { view: 'repos', repo: null, path: '' };
   function openCoding() { codingState = { view: 'repos', repo: null, path: '' }; showScreen('codingScreen'); loadRepos(); }
   async function githubCall(action, repo, path) {
@@ -496,7 +532,6 @@
     finally { btn.disabled = false; }
   }
 
-  // --- رفع باگ ---
   let bugImageBase64 = null;
   function openBugDoctor() {
     document.getElementById('bugErrorText').value = '';
@@ -572,14 +607,8 @@ ${codeText ? '\nکد مرتبط:\n```\n' + codeText + '\n```' : ''}`;
     finally { btn.disabled = false; }
   }
 
-  // --- پروژه‌ها ---
   let currentProjectId = null;
-
-  function openProjects() {
-    showScreen('projectsScreen');
-    loadProjects();
-  }
-
+  function openProjects() { showScreen('projectsScreen'); loadProjects(); }
   async function loadProjects() {
     const box = document.getElementById('projectsList');
     box.innerHTML = '<div class="list-item loading">در حال بارگذاری...</div>';
@@ -596,7 +625,6 @@ ${codeText ? '\nکد مرتبط:\n```\n' + codeText + '\n```' : ''}`;
       box.appendChild(div);
     });
   }
-
   function openNewProject() {
     currentProjectId = null;
     document.getElementById('newProjectTitle').textContent = 'پروژه جدید';
@@ -606,7 +634,6 @@ ${codeText ? '\nکد مرتبط:\n```\n' + codeText + '\n```' : ''}`;
     document.getElementById('projStack').value = '';
     showScreen('newProjectScreen');
   }
-
   async function saveProject() {
     const name = document.getElementById('projName').value.trim();
     const description = document.getElementById('projDesc').value.trim();
@@ -626,9 +653,7 @@ ${codeText ? '\nکد مرتبط:\n```\n' + codeText + '\n```' : ''}`;
       else { openProjects(); }
     } finally { btn.disabled = false; btn.textContent = 'ذخیره پروژه'; }
   }
-
   let currentProjectData = null;
-
   async function openProjectDetail(id) {
     currentProjectId = id;
     showScreen('projectDetailScreen');
@@ -642,7 +667,6 @@ ${codeText ? '\nکد مرتبط:\n```\n' + codeText + '\n```' : ''}`;
     document.getElementById('detailStack').textContent = data.tech_stack || '—';
     document.getElementById('detailCreated').textContent = new Date(data.created_at).toLocaleDateString('fa-IR');
   }
-
   function editProject() {
     if (!currentProjectData) return;
     document.getElementById('newProjectTitle').textContent = 'ویرایش پروژه';
@@ -652,13 +676,110 @@ ${codeText ? '\nکد مرتبط:\n```\n' + codeText + '\n```' : ''}`;
     document.getElementById('projStack').value = currentProjectData.tech_stack || '';
     showScreen('newProjectScreen');
   }
-
   async function deleteProject() {
     if (!currentProjectId) return;
     if (!confirm('این پروژه کامل حذف بشه؟ این کار قابل برگشت نیست.')) return;
     const { error } = await supabaseClient.from('projects').delete().eq('id', currentProjectId);
     if (error) { alert('خطا: ' + error.message); return; }
     openProjects();
+  }
+
+  // --- ساخت اپ ---
+  let lastBuildAppPlan = null;
+  let lastBuildAppIdea = null;
+
+  function openBuildApp() {
+    document.getElementById('buildAppIdea').value = '';
+    document.getElementById('buildAppResult').style.display = 'none';
+    document.getElementById('buildAppResult').textContent = '';
+    document.getElementById('buildAppActions').style.display = 'none';
+    lastBuildAppPlan = null;
+    lastBuildAppIdea = null;
+    showScreen('buildAppScreen');
+  }
+
+  async function analyzeBuildApp() {
+    const idea = document.getElementById('buildAppIdea').value.trim();
+    const btn = document.getElementById('buildAppSubmitBtn');
+    const resultBox = document.getElementById('buildAppResult');
+    const actionsBox = document.getElementById('buildAppActions');
+    if (!idea) { alert('اول ایده‌ات رو بنویس'); return; }
+
+    const promptTemplate =
+`تو الان نقش "برنامه‌ریز پروژه" داری. ایده‌ی خام زیر را دقیقاً با همین ساختار فارسی به یک طرح کامل تبدیل کن، هیچ بخشی را با TODO یا "بعداً مشخص می‌شود" رها نکن، و اگر واقعاً بدون API پولی امکان‌پذیر نیست صریح بگو:
+
+Requirements (نیازمندی‌ها):
+...
+
+Features (قابلیت‌ها):
+...
+
+Architecture (معماری):
+...
+
+Database (دیتابیس):
+...
+
+UI (رابط کاربری):
+...
+
+API:
+...
+
+AI/OCR (در صورت نیاز):
+...
+
+Security (امنیت):
+...
+
+Development Tasks (وظایف توسعه، به ترتیب اجرا):
+...
+
+Testing (تست):
+...
+
+Deployment (استقرار):
+...
+
+محدودیت‌های ثابت پروژه: iPhone/Safari/PWA، هزینه صفر یا نزدیک صفر، بدون اشتراک اجباری، کلید API هرگز در فرانت‌اند نباشد.
+
+---
+ایده‌ی کاربر:
+${idea}`;
+
+    btn.disabled = true;
+    resultBox.style.display = 'block';
+    resultBox.textContent = 'در حال طراحی...';
+    actionsBox.style.display = 'none';
+
+    try {
+      const data = await callAiChat(promptTemplate);
+      if (data.error) {
+        resultBox.textContent = 'خطا: ' + data.error;
+      } else {
+        resultBox.textContent = data.reply + '\n\n— منبع: ' + data.provider;
+        lastBuildAppPlan = data.reply;
+        lastBuildAppIdea = idea;
+        actionsBox.style.display = 'flex';
+        saveMessage('user', '[ساخت اپ] ' + idea);
+        saveMessage('ai', data.reply);
+      }
+    } catch (e) {
+      resultBox.textContent = 'خطا در اتصال به سرور. دوباره امتحان کن.';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function saveBuildAppAsProject() {
+    if (!lastBuildAppPlan) return;
+    currentProjectId = null;
+    document.getElementById('newProjectTitle').textContent = 'پروژه جدید (از طرح)';
+    document.getElementById('projName').value = lastBuildAppIdea.slice(0, 60);
+    document.getElementById('projDesc').value = lastBuildAppIdea;
+    document.getElementById('projGoals').value = lastBuildAppPlan;
+    document.getElementById('projStack').value = '';
+    showScreen('newProjectScreen');
   }
 
   if ('serviceWorker' in navigator) { navigator.serviceWorker.register('service-worker.js'); }
