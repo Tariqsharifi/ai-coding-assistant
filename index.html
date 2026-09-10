@@ -51,15 +51,18 @@
   }
   .menu-btn span { display: block; font-size: 26px; margin-bottom: 8px; }
 
-  #chatScreen { height: 100vh; }
-  .chat-header {
+  /* --- هدر مشترک صفحات داخلی --- */
+  .inner-header {
     display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px;
     background: #1e293b; border-bottom: 1px solid #334155;
   }
-  .chat-header-left { display: flex; align-items: center; gap: 10px; }
-  .back-btn { background: none; border: none; color: #38bdf8; font-size: 18px; }
-  .chat-header h3 { font-size: 16px; }
-  .clear-btn { background: none; border: 1px solid #334155; color: #94a3b8; padding: 5px 10px; border-radius: 16px; font-size: 12px; }
+  .inner-header-left { display: flex; align-items: center; gap: 10px; overflow: hidden; }
+  .back-btn { background: none; border: none; color: #38bdf8; font-size: 18px; flex-shrink: 0; }
+  .inner-header h3 { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .small-btn { background: none; border: 1px solid #334155; color: #94a3b8; padding: 5px 10px; border-radius: 16px; font-size: 12px; flex-shrink:0; }
+
+  /* --- چت --- */
+  #chatScreen { height: 100vh; }
   #messages {
     flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px;
   }
@@ -82,6 +85,28 @@
     color: #0f172a; font-weight: bold;
   }
   .chat-input-bar button:disabled { opacity: 0.5; }
+
+  /* --- کدنویسی: مرور فایل --- */
+  #codingScreen { height: 100vh; }
+  #fileList { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+  .list-item {
+    display: flex; align-items: center; gap: 10px;
+    background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+    padding: 14px; font-size: 15px; text-align: right; color: #f1f5f9;
+  }
+  .list-item span.icon { font-size: 18px; }
+  .list-item.loading, .list-item.empty { justify-content: center; color: #64748b; background:none; border:none; }
+
+  #fileViewBox {
+    flex: 1; overflow-y: auto; padding: 12px; background: #0f172a;
+  }
+  #fileContentPre {
+    background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+    padding: 12px; font-family: monospace; font-size: 12px; white-space: pre-wrap;
+    word-break: break-word; direction: ltr; text-align: left; color: #e2e8f0;
+    max-height: 40vh; overflow-y: auto; margin-bottom: 10px;
+  }
+  .truncate-warning { color: #facc15; font-size: 12px; margin-bottom: 10px; }
 </style>
 </head>
 <body>
@@ -105,7 +130,7 @@
     <button class="menu-btn" onclick="comingSoon()"><span>➕</span>پروژه جدید</button>
     <button class="menu-btn" onclick="comingSoon()"><span>📁</span>پروژه‌ها</button>
     <button class="menu-btn" onclick="showScreen('chatScreen')"><span>💬</span>گفتگو با AI</button>
-    <button class="menu-btn" onclick="comingSoon()"><span>💻</span>کدنویسی</button>
+    <button class="menu-btn" onclick="openCoding()"><span>💻</span>کدنویسی</button>
     <button class="menu-btn" onclick="comingSoon()"><span>🐞</span>رفع باگ</button>
     <button class="menu-btn" onclick="comingSoon()"><span>🏗️</span>ساخت اپ</button>
     <button class="menu-btn" onclick="comingSoon()"><span>📄</span>فایل‌ها</button>
@@ -115,12 +140,12 @@
 </div>
 
 <div id="chatScreen" class="screen">
-  <div class="chat-header">
-    <div class="chat-header-left">
+  <div class="inner-header">
+    <div class="inner-header-left">
       <button class="back-btn" onclick="showScreen('homeScreen')">→ بازگشت</button>
       <h3>گفتگو با AI</h3>
     </div>
-    <button class="clear-btn" onclick="clearHistory()">پاک کردن</button>
+    <button class="small-btn" onclick="clearHistory()">پاک کردن</button>
   </div>
   <div id="messages">
     <div class="msg system">در حال بارگذاری تاریخچه...</div>
@@ -131,12 +156,39 @@
   </div>
 </div>
 
+<!-- صفحه کدنویسی -->
+<div id="codingScreen" class="screen">
+  <div class="inner-header">
+    <div class="inner-header-left">
+      <button class="back-btn" id="codingBackBtn" onclick="codingBack()">→ بازگشت</button>
+      <h3 id="codingTitle">پروژه‌ها</h3>
+    </div>
+  </div>
+
+  <!-- حالت لیست (ریپوها یا فایل‌ها) -->
+  <div id="fileList"></div>
+
+  <!-- حالت مشاهده فایل + سؤال از AI (پیش‌فرض مخفی) -->
+  <div id="fileViewBox" style="display:none;">
+    <div class="truncate-warning" id="truncateWarning" style="display:none;">
+      ⚠️ فایل بزرگ است، فقط بخش ابتدایی برای AI ارسال می‌شود.
+    </div>
+    <div id="fileContentPre"></div>
+  </div>
+  <div class="chat-input-bar" id="fileAskBar" style="display:none;">
+    <input type="text" id="fileAskInput" placeholder="درباره این فایل بپرس..." onkeydown="if(event.key==='Enter') askAboutFile()">
+    <button id="fileAskBtn" onclick="askAboutFile()">ارسال</button>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
   const SUPABASE_URL = "https://jucvdutfxazetlmlezka.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_TpUs6076LA1x75TaFGTnZg_rxj0TdI5";
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const AI_CHAT_URL = `${SUPABASE_URL}/functions/v1/ai-chat`;
+  const GITHUB_FILES_URL = `${SUPABASE_URL}/functions/v1/github-files`;
+  const MAX_FILE_CHARS = 12000;
 
   let historyLoaded = false;
 
@@ -173,6 +225,12 @@
 
   function comingSoon() { alert('این بخش در مرحله بعد ساخته می‌شود 🙂'); }
 
+  async function getToken() {
+    const { data } = await supabaseClient.auth.getSession();
+    return data.session?.access_token;
+  }
+
+  // --- چت عمومی ---
   function addMessage(text, cls, provider) {
     const box = document.getElementById('messages');
     const div = document.createElement('div');
@@ -193,36 +251,20 @@
     if (historyLoaded) return;
     historyLoaded = true;
     const box = document.getElementById('messages');
-
     const { data, error } = await supabaseClient
       .from('conversation_log')
       .select('role, content, created_at')
       .is('project_id', null)
       .order('created_at', { ascending: true });
-
     box.innerHTML = '';
-
-    if (error) {
-      addMessage('خطا در بارگذاری تاریخچه: ' + error.message, 'system');
-      return;
-    }
-
-    if (!data || data.length === 0) {
-      addMessage('سلام! هر سؤال کدنویسی یا ایده‌ای داری بپرس.', 'system');
-      return;
-    }
-
-    data.forEach(row => {
-      addMessage(row.content, row.role === 'user' ? 'user' : 'ai');
-    });
+    if (error) { addMessage('خطا در بارگذاری تاریخچه: ' + error.message, 'system'); return; }
+    if (!data || data.length === 0) { addMessage('سلام! هر سؤال کدنویسی یا ایده‌ای داری بپرس.', 'system'); return; }
+    data.forEach(row => addMessage(row.content, row.role === 'user' ? 'user' : 'ai'));
   }
 
   async function saveMessage(role, content) {
-    try {
-      await supabaseClient.from('conversation_log').insert({ project_id: null, role, content });
-    } catch (e) {
-      console.error('save failed', e);
-    }
+    try { await supabaseClient.from('conversation_log').insert({ project_id: null, role, content }); }
+    catch (e) { console.error('save failed', e); }
   }
 
   async function clearHistory() {
@@ -232,45 +274,201 @@
     loadChatHistory();
   }
 
+  async function callAiChat(message) {
+    const token = await getToken();
+    const res = await fetch(AI_CHAT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ message }),
+    });
+    return res.json();
+  }
+
   async function sendMessage() {
     const input = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendBtn');
     const text = input.value.trim();
     if (!text) return;
-
     addMessage(text, 'user');
     saveMessage('user', text);
     input.value = '';
     sendBtn.disabled = true;
     const loadingMsg = addMessage('در حال فکر کردن...', 'ai');
-
     try {
-      const { data: sessionData } = await supabaseClient.auth.getSession();
-      const token = sessionData.session?.access_token;
-
-      const res = await fetch(AI_CHAT_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ message: text }),
-      });
-
-      const data = await res.json();
+      const data = await callAiChat(text);
       loadingMsg.remove();
-
-      if (data.error) {
-        addMessage('خطا: ' + data.error, 'system');
-      } else {
-        addMessage(data.reply, 'ai', data.provider);
-        saveMessage('ai', data.reply);
-      }
+      if (data.error) { addMessage('خطا: ' + data.error, 'system'); }
+      else { addMessage(data.reply, 'ai', data.provider); saveMessage('ai', data.reply); }
     } catch (err) {
       loadingMsg.remove();
       addMessage('خطا در اتصال به سرور. دوباره امتحان کن.', 'system');
+    } finally { sendBtn.disabled = false; }
+  }
+
+  // --- کدنویسی: مرور GitHub ---
+  let codingState = { view: 'repos', repo: null, path: '' };
+
+  function openCoding() {
+    codingState = { view: 'repos', repo: null, path: '' };
+    showScreen('codingScreen');
+    loadRepos();
+  }
+
+  async function githubCall(action, repo, path) {
+    const token = await getToken();
+    const res = await fetch(GITHUB_FILES_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ action, repo, path }),
+    });
+    return res.json();
+  }
+
+  function setFileListLoading() {
+    document.getElementById('fileList').innerHTML = '<div class="list-item loading">در حال بارگذاری...</div>';
+  }
+
+  async function loadRepos() {
+    document.getElementById('fileViewBox').style.display = 'none';
+    document.getElementById('fileAskBar').style.display = 'none';
+    document.getElementById('fileList').style.display = 'flex';
+    document.getElementById('codingTitle').textContent = 'پروژه‌ها';
+    document.getElementById('codingBackBtn').textContent = '→ بازگشت';
+    setFileListLoading();
+
+    const { result, error } = await githubCall('listRepos');
+    const box = document.getElementById('fileList');
+    if (error) { box.innerHTML = `<div class="list-item empty">خطا: ${error}</div>`; return; }
+    if (!result || result.length === 0) { box.innerHTML = '<div class="list-item empty">هیچ ریپویی پیدا نشد</div>'; return; }
+
+    box.innerHTML = '';
+    result.forEach(r => {
+      const div = document.createElement('div');
+      div.className = 'list-item';
+      div.innerHTML = `<span class="icon">📦</span><span>${r.name}${r.private ? ' 🔒' : ''}</span>`;
+      div.onclick = () => openRepo(r.name);
+      box.appendChild(div);
+    });
+  }
+
+  function openRepo(repoName) {
+    codingState = { view: 'files', repo: repoName, path: '' };
+    loadFiles();
+  }
+
+  async function loadFiles() {
+    document.getElementById('fileViewBox').style.display = 'none';
+    document.getElementById('fileAskBar').style.display = 'none';
+    document.getElementById('fileList').style.display = 'flex';
+    document.getElementById('codingTitle').textContent = codingState.repo + (codingState.path ? ' / ' + codingState.path : '');
+    document.getElementById('codingBackBtn').textContent = '→ بازگشت';
+    setFileListLoading();
+
+    const { result, error } = await githubCall('listFiles', codingState.repo, codingState.path);
+    const box = document.getElementById('fileList');
+    if (error) { box.innerHTML = `<div class="list-item empty">خطا: ${error}</div>`; return; }
+    if (!result || result.length === 0) { box.innerHTML = '<div class="list-item empty">پوشه خالی است</div>'; return; }
+
+    box.innerHTML = '';
+    const items = Array.isArray(result) ? result : [result];
+    items.sort((a, b) => (a.type === b.type) ? a.name.localeCompare(b.name) : (a.type === 'dir' ? -1 : 1));
+    items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'list-item';
+      const icon = item.type === 'dir' ? '📁' : '📄';
+      div.innerHTML = `<span class="icon">${icon}</span><span>${item.name}</span>`;
+      div.onclick = () => {
+        if (item.type === 'dir') {
+          codingState.path = item.path;
+          loadFiles();
+        } else {
+          openFile(item.path);
+        }
+      };
+      box.appendChild(div);
+    });
+  }
+
+  async function openFile(filePath) {
+    codingState.view = 'file';
+    codingState.filePath = filePath;
+    document.getElementById('fileList').style.display = 'none';
+    document.getElementById('fileViewBox').style.display = 'block';
+    document.getElementById('fileAskBar').style.display = 'flex';
+    document.getElementById('codingTitle').textContent = filePath.split('/').pop();
+    document.getElementById('fileContentPre').textContent = 'در حال بارگذاری فایل...';
+    document.getElementById('truncateWarning').style.display = 'none';
+
+    const { result, error } = await githubCall('getFile', codingState.repo, filePath);
+    if (error) { document.getElementById('fileContentPre').textContent = 'خطا: ' + error; return; }
+
+    codingState.fullContent = result.content;
+    document.getElementById('fileContentPre').textContent = result.content;
+    if (result.content.length > MAX_FILE_CHARS) {
+      document.getElementById('truncateWarning').style.display = 'block';
+    }
+  }
+
+  function codingBack() {
+    if (codingState.view === 'file') {
+      codingState.view = 'files';
+      loadFiles();
+    } else if (codingState.view === 'files') {
+      if (codingState.path) {
+        const parts = codingState.path.split('/');
+        parts.pop();
+        codingState.path = parts.join('/');
+        loadFiles();
+      } else {
+        codingState = { view: 'repos', repo: null, path: '' };
+        loadRepos();
+      }
+    } else {
+      showScreen('homeScreen');
+    }
+  }
+
+  async function askAboutFile() {
+    const input = document.getElementById('fileAskInput');
+    const btn = document.getElementById('fileAskBtn');
+    const question = input.value.trim();
+    if (!question) return;
+
+    let fileContent = codingState.fullContent || '';
+    let truncated = false;
+    if (fileContent.length > MAX_FILE_CHARS) {
+      fileContent = fileContent.slice(0, MAX_FILE_CHARS);
+      truncated = true;
+    }
+
+    const fullMessage =
+      `فایل: ${codingState.filePath} (پروژه: ${codingState.repo})` +
+      (truncated ? '\n(توجه: فقط بخش ابتدایی فایل ارسال شده چون فایل بزرگ است)' : '') +
+      `\n\nمحتوای فایل:\n\`\`\`\n${fileContent}\n\`\`\`\n\nسؤال: ${question}`;
+
+    input.value = '';
+    btn.disabled = true;
+    const warningBox = document.getElementById('fileContentPre');
+    const oldText = warningBox.textContent;
+    warningBox.textContent = 'در حال تحلیل توسط AI...\n\n' + oldText;
+
+    try {
+      const data = await callAiChat(fullMessage);
+      warningBox.textContent = oldText;
+      if (data.error) {
+        alert('خطا: ' + data.error);
+      } else {
+        showScreen('chatScreen');
+        addMessage(`[درباره ${codingState.filePath}] ${question}`, 'user');
+        saveMessage('user', `[درباره ${codingState.filePath}] ${question}`);
+        addMessage(data.reply, 'ai', data.provider);
+        saveMessage('ai', data.reply);
+      }
+    } catch (e) {
+      warningBox.textContent = oldText;
+      alert('خطا در اتصال به سرور');
     } finally {
-      sendBtn.disabled = false;
+      btn.disabled = false;
     }
   }
 
