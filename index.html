@@ -685,20 +685,35 @@ ${codeText ? '\nکد مرتبط:\n```\n' + codeText + '\n```' : ''}`;
   }
 
   // --- ساخت اپ ---
-  let lastBuildAppPlan = null;
-  let lastBuildAppIdea = null;
+function openBuildApp() {
+  document.getElementById('buildAppIdea').value = '';
+  showScreen('buildAppScreen');
+}
 
-  function openBuildApp() {
-    document.getElementById('buildAppIdea').value = '';
-    document.getElementById('buildAppResult').style.display = 'none';
-    document.getElementById('buildAppResult').textContent = '';
-    document.getElementById('buildAppActions').style.display = 'none';
-    lastBuildAppPlan = null;
-    lastBuildAppIdea = null;
-    showScreen('buildAppScreen');
+async function analyzeBuildApp() {
+  const idea = document.getElementById('buildAppIdea').value.trim();
+  if (!idea) { alert('اول ایده‌ات رو بنویس'); return; }
+
+  const message = `می‌خوام این ایده رو بسازم: ${idea}
+
+لطفاً مثل یک همکار کدنویس قدم‌به‌قدم پیش برو: اگه سؤال ضروری داری فقط یکی بپرس، وگرنه مستقیم برو سراغ کد واقعی و اولین فایل رو کامل بده و بگو کجا بذارمش.`;
+
+  showScreen('chatScreen');
+  addMessage(message, 'user');
+  saveMessage('user', message);
+  const loadingMsg = addMessage('در حال فکر کردن...', 'ai');
+
+  try {
+    const data = await callAiChat(message);
+    loadingMsg.remove();
+    if (data.error) { addMessage('خطا: ' + data.error, 'system'); }
+    else { addMessage(data.reply, 'ai', data.provider); saveMessage('ai', data.reply); }
+  } catch (e) {
+    loadingMsg.remove();
+    addMessage('خطا در اتصال به سرور. دوباره امتحان کن.', 'system');
   }
+}
 
-  async function analyzeBuildApp() {
     const idea = document.getElementById('buildAppIdea').value.trim();
     const btn = document.getElementById('buildAppSubmitBtn');
     const resultBox = document.getElementById('buildAppResult');
